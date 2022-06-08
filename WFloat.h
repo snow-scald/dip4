@@ -261,6 +261,7 @@ inline ostream &operator<<(ostream &out, const WFloat &num) // Êä³öÖØÔØ
 	{
 		out << (char) ((*iter) + '0');
 	}
+	out << ' ';
 	return out;
 }
 

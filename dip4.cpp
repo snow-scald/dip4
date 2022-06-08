@@ -21,9 +21,11 @@ int main()
 	vector<int> originv;
 	vector<int> testv;
 	int temp;
+
+	//显示一定的像素值，用于测试时计算误码率
 	for(int i = 0; i < 1; i++)
 	{
-		for(int j = 0; j < 128; j++){
+		for(int j = 0; j < 256; j++){
 			
 			temp = int(bmpfile.pDataAt(i)[j]);
 			cout << temp << " ";
@@ -42,5 +44,19 @@ int main()
 	arithencode(&bmpfile);
 	vector<double>myrange = scrange(&bmpfile);
 	vector<double>mylow = sclow(myrange);
-	arithdecode(myrange, mylow);
+	arithdecode(myrange, mylow,testv);
+
+	cout << "\n编码前长度：" << originv.size() ;
+	cout << "\n编码后长度：" << testv.size();
+	
+	cout << "\n计算误码率：";
+	double testcount=0;
+	for(size_t i = 0; i < originv.size(); i++)
+	{
+		if(originv[i]==testv[i])
+		{
+			testcount++;
+		}
+	}
+	cout << 1-(testcount / originv.size());
 }

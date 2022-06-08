@@ -8,9 +8,12 @@
 using namespace std;
 
 string dtos(double num);
+vector<double> scrange(HXLBMPFILE *);
+vector<double> sclow(vector<double>);
+void arithencode(HXLBMPFILE *);
+void arithdecode(vector<double>, vector<double>, vector<int> &);
 
-
-class Mylongdouble{
+/*class Mylongdouble{
 private:
 	vector<int> ints;
 public:
@@ -19,10 +22,7 @@ public:
 	Mylongdouble operator/(double d);
 	bool operator<(double r);
 	bool operator>(double r);
-};
+};*/
 
-vector<double> scrange(HXLBMPFILE *bmp);
-vector<double> sclow(vector<double> range);
-void arithencode(HXLBMPFILE *bmp);
-void arithdecode(vector<double>myrange, vector<double>mylow);
+
 

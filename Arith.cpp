@@ -43,7 +43,7 @@ string dtos(double num)
 	return res;
 }
 
-Mylongdouble::Mylongdouble(vector<char>tints){
+/*Mylongdouble::Mylongdouble(vector<char>tints){
 	for(int i = 0; i < tints.size(); i++)
 	{
 		ints.push_back(int(tints[i]-'0'));
@@ -80,22 +80,22 @@ Mylongdouble Mylongdouble::operator-(double r){
 	return res;
 
 }
-//Mylongdouble Mylongdouble::operator/(double d){
-//	int multi = int(1 / d);
-//	int carry = 0;
-//	int temp;
-//	for(int i = ints.size()-1; i >-1; i--)
-//	{
-//		temp = (ints[i] * multi + carry);
-//		ints[i] = temp%10;
-//		carry = temp / 10;
-//	}
-//	while(ints[ints.size() - 1] == 0)
-//	{
-//		ints.pop_back();
-//	}
-//	return *this;
-//}
+Mylongdouble Mylongdouble::operator/(double d){
+	int multi = int(1 / d);
+	int carry = 0;
+	int temp;
+	for(int i = ints.size()-1; i >-1; i--)
+	{
+		temp = (ints[i] * multi + carry);
+		ints[i] = temp%10;
+		carry = temp / 10;
+	}
+	while(ints[ints.size() - 1] == 0)
+	{
+		ints.pop_back();
+	}
+	return *this;
+}
 
 Mylongdouble Mylongdouble::operator/(double d){
 	long long upd=0;
@@ -159,7 +159,7 @@ bool Mylongdouble::operator>(double r){
 		r = r * 10;
 	}
 	return tdouble > r;
-}
+}*/
 
 
 vector<double> scrange(HXLBMPFILE *bmp)
@@ -202,22 +202,31 @@ void arithencode(HXLBMPFILE *bmp){
 	//long double tlow = 0;
 	//long double thigh = 1;
 	//long double trange = 1;
-	WFloat tlow(0);
-	WFloat thigh (1);
-	WFloat trange (1);
+	WFloat tlow;
+	WFloat thigh;
+	WFloat trange;
 
-	for(int i = 0; i < 1; i++)
+	for(int i = 0; i < 512; i++)
 	{
-		for(int j = 0; j < 512; j++)
+		for(int n = 0; n < 4; n++)
 		{
-			tlow = tlow + trange * dtos(mylow[bmp->pDataAt(i)[j]]);
-			thigh = tlow + trange * dtos(myrange[bmp->pDataAt(i)[j]]);
-			trange = thigh - tlow;
+			tlow = WFloat(0);
+			thigh = WFloat(1);
+			trange = WFloat(1);
+			for(int j = 0; j < 128; j++)
+			{
+				tlow = tlow + trange * dtos(mylow[bmp->pDataAt(i)[n*128+j]]);
+				thigh = tlow + trange * dtos(myrange[bmp->pDataAt(i)[n * 128 + j]]);
+				trange = thigh - tlow;
+			}
+			tlow = (tlow + thigh) / 2;
+			outdata << tlow;
 		}
-		tlow = (tlow + thigh) / 2;
-	}
-	outdata << tlow;
-	/*for(int i = 0; i < 1; i++)
+		}
+
+
+	/*使用自己实现的高精度，测试失败
+	for(int i = 0; i < 1; i++)
 	{
 		for(int j = 4; j < 8; j++)
 		{
@@ -249,11 +258,10 @@ void arithencode(HXLBMPFILE *bmp){
 	outdata.close();
 }
 
-void arithdecode(vector<double>myrange, vector<double>mylow){
+void arithdecode(vector<double>myrange, vector<double>mylow,vector<int> &testv){
 	HXLBMPFILE output;
 	vector<char> inchars;
 	ifstream inputdata("outdata.dat", ios::in | ios::binary);
-	char tchar;
 	inputdata.read((char *) &(output.iImageh), sizeof(int));
 	inputdata.read((char *) &(output.iImagew), sizeof(int));
 	output.iYRGBnum = 1;
@@ -302,24 +310,26 @@ void arithdecode(vector<double>myrange, vector<double>mylow){
 	//}
 
 	WFloat mycode;
-	inputdata >> mycode;
-	cout << endl << endl;
-	for(int i1 = 0; i1 < 1; i1++)
+	cout << endl;
+	for(int i1 = 0; i1 < 512; i1++)				//i1为每一行
 	{
-		for(int i2 = 0; i2 < 512; i2++)
+		for(int n = 0; n < 4; n++)				//n为每一行内分组
 		{
-			for(int j = 0; j < 256; j++){
-				if(mycode > dtos(mylow[j]) && mycode < dtos(mylow[j] + myrange[j])){
-					output.pDataAt(i1)[i2] = j;
-					mycode = (mycode - dtos(mylow[j])) / dtos(myrange[j]);
-					cout << j << " ";
-					break;
+			inputdata >> mycode;
+			for(int i2 = 0; i2 < 128; i2++)		//i2为每一分组内的编号
+			{
+				for(int j = 0; j < 256; j++){	//j为寻找落在的区间的循环变量
+					if(mycode > dtos(mylow[j]) && mycode < dtos(mylow[j] + myrange[j])){
+						output.pDataAt(i1)[n * 128 + i2] = j;
+						mycode = (mycode - dtos(mylow[j])) / dtos(myrange[j]);
+						testv.push_back(j);
+						cout << j << " ";
+						break;
+					}
 				}
 			}
 		}
 	}
-
-
-	//output.SaveBMPFile("testout.bmp");
+	output.SaveBMPFile("testout.bmp");
 	inputdata.close();
 }
